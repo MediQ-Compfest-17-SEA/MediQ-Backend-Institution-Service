@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Institution {
+  id        String    @id @default(uuid())
+  name      String
+  address   String?   // Alamat bisa jadi opsional
+  phone     String?   // No. telp juga opsional
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  services Service[] // Relasi: Satu institusi punya banyak layanan
+}
+
+model Service {
+  id            String      @id @default(uuid())
+  name          String      // e.g., "Poli Umum", "Apotek"
+  location      String?     // e.g., "Lantai 2, Ruang 201"
+
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  institutionId String
+}
