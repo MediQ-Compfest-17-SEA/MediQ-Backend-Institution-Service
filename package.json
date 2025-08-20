@@ -15,20 +15,32 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:cov": "jest --coverage --coverageReporters=text-lcov --coverageReporters=html",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:integration": "jest --config ./test/jest-integration.json",
+    "ci:test": "npm run test:cov && npm run test:e2e",
+    "ci:build": "npm run build",
+    "security:check": "npm audit --audit-level=moderate",
+    "docker:build": "docker build -t mediq-institution-service .",
+    "docker:push": "docker push mediq-institution-service"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/microservices": "^11.1.6",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "^6.14.0",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "joi": "^18.0.0",
+    "nestjs-pino": "^4.4.0",
+    "pino-http": "^10.5.0",
+    "pino-pretty": "^13.1.1",
     "prisma": "^6.14.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
@@ -70,9 +82,26 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.ts",
+      "!**/*.interface.ts",
+      "!**/*.dto.ts",
+      "!**/main.ts",
+      "!**/*.enum.ts"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapping": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
+    "coverageThreshold": {
+      "global": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    },
+    "setupFilesAfterEnv": ["<rootDir>/../test/setup.ts"]
   }
 }

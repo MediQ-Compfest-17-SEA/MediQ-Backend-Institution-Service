@@ -6,7 +6,7 @@
   ],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
+  "testRegex": ".integration-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
@@ -22,7 +22,7 @@
     "!**/main.ts",
     "!**/*.enum.ts"
   ],
-  "coverageDirectory": "./coverage-e2e",
+  "coverageDirectory": "./coverage-integration",
   "testTimeout": 30000,
   "maxWorkers": 1
 }

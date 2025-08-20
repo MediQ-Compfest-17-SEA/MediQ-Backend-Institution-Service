@@ -17,10 +17,19 @@ export class InstitutionService {
     return this.prisma.institution.findMany();
   }
 
-  findOne(id: string) {
-    return this.prisma.institution.findUnique({
+  async findOne(id: string) {
+    const institution = await this.prisma.institution.findUnique({
       where: { id },
+      include: {
+        services: true,
+      },
     });
+
+    if (!institution) {
+      throw new NotFoundException(`Institution with ID ${id} not found.`);
+    }
+
+    return institution;
   }
   
     async update(id: string, updateInstitutionDto: UpdateInstitutionDto) {
@@ -39,9 +48,24 @@ export class InstitutionService {
       await this.prisma.institution.delete({
         where: { id },
       });
-      return { message: `Institusi dengan ID ${id} berhasil dihapus.` };
+      return { message: `Institution with ID ${id} has been successfully deleted.` };
     } catch (error) {
-      throw new NotFoundException(`Institusi dengan ID ${id} tidak ditemukan.`);
+      throw new NotFoundException(`Institution with ID ${id} not found.`);
     }
+  }
+
+  async getServices(institutionId: string) {
+    const institution = await this.prisma.institution.findUnique({
+      where: { id: institutionId },
+      include: {
+        services: true,
+      },
+    });
+
+    if (!institution) {
+      throw new NotFoundException(`Institution with ID ${institutionId} not found.`);
+    }
+
+    return institution.services;
   }
 }
