@@ -42,12 +42,24 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('MediQ Institution Service')
-    .setDescription('API documentation for the MediQ Institution Service')
-    .setVersion('1.0')
-    .addTag('institutions', 'Operations related to healthcare institutions')
-    .addTag('services', 'Operations related to institution services')
-    .addTag('health', 'Health check operations')
+    .setDescription('Advanced mikroservice untuk manajemen institusi kesehatan dan layanan medis. Mendukung CRUD institusi, manajemen layanan, pencarian institusi, dan integrasi dengan queue system untuk monitoring antrian real-time.')
+    .setVersion('3.0')
+    .addTag('institutions', 'Institution management - CRUD institusi kesehatan, pencarian, filtering')
+    .addTag('services', 'Institution services - Manajemen layanan medis, scheduling, availability')
+    .addTag('health', 'Health check dan monitoring - Service status, database connectivity')
     .addBearerAuth()
+    .setContact(
+      'MediQ Support',
+      'https://mediq.craftthingy.com',
+      'support@mediq.com'
+    )
+    .setLicense(
+      'MIT',
+      'https://opensource.org/licenses/MIT'
+    )
+    .addServer('http://localhost:8606', 'Development Server')
+    .addServer('https://mediq-institution-service.craftthingy.com', 'Production Server')
+    .setExternalDoc('MediQ Documentation', 'https://mediq.craftthingy.com/docs')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
