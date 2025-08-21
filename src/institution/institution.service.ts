@@ -59,7 +59,6 @@ export class InstitutionService {
       where: {
         name: {
           contains: searchName,
-          mode: 'insensitive',
         },
       },
       include: {
