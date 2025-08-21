@@ -18,8 +18,6 @@ afterEach(async () => {
 
 afterAll(async () => {
   // Global cleanup
-  const prisma = new PrismaClient();
-  await prisma.$disconnect();
 });
 
 // Mock external dependencies

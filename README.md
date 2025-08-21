@@ -1,365 +1,676 @@
-# MediQ Institution Service
+# MediQ Backend - Institution Service
 
-A microservice for managing healthcare institutions and their services within the MediQ ecosystem. Built with NestJS, this service provides comprehensive institution management with RabbitMQ integration for microservices communication.
+## 🏢 Deskripsi
 
-## 🚀 Features
+**Institution Service** adalah layanan dalam sistem MediQ yang mengelola **data fasilitas kesehatan (faskes) dan layanan medis** yang tersedia. Service ini menyediakan manajemen comprehensive untuk rumah sakit, klinik, puskesmas, dan layanan kesehatan yang mereka tawarkan seperti Poli Umum, Poli Gigi, Apotek, dll.
 
-- **Institution Management**: Complete CRUD operations for healthcare institutions
-- **Service Management**: Manage services offered by institutions
-- **RabbitMQ Integration**: Microservices communication patterns
-- **Swagger Documentation**: Comprehensive API documentation
-- **Type Safety**: Full TypeScript support with validation
-- **Health Checks**: Built-in health monitoring endpoints
-- **Docker Support**: Production-ready containerization
-- **Kubernetes Ready**: Complete K8s manifests included
-- **CI/CD Pipeline**: GitHub Actions workflow
-- **100% Test Coverage**: Unit, integration, and E2E tests
+## ✨ Fitur Utama
 
-## 🏗️ Architecture
+### 🏥 Manajemen Fasilitas Kesehatan
+- **CRUD Operations**: Create, Read, Update, Delete untuk data faskes
+- **Institution Search**: Pencarian berdasarkan nama dengan fuzzy matching
+- **Data Validation**: Validasi comprehensive untuk data faskes
+- **Relationship Management**: Relasi one-to-many dengan services/layanan
 
-This service is part of the MediQ microservices architecture:
+### 🔧 Manajemen Layanan Medis
+- **Service Management**: Kelola layanan yang ditawarkan setiap faskes
+- **Location Tracking**: Informasi lokasi layanan (lantai, ruang)
+- **Service Discovery**: API untuk menemukan layanan yang tersedia
+- **Integration Ready**: Siap integrasi dengan Queue Service untuk antrian per layanan
 
-- **Port**: 8606
-- **Queue**: `institution_service_queue`
-- **Database**: PostgreSQL with Prisma ORM
-- **Message Broker**: RabbitMQ
-- **API Documentation**: Available at `/api/docs`
+### 🔄 Microservices Integration
+- **RabbitMQ Communication**: Message patterns untuk cross-service communication
+- **Database Independence**: MySQL database terpisah untuk institution data
+- **API Gateway Integration**: Routing via API Gateway untuk external access
+- **Real-time Updates**: Event-driven updates untuk perubahan institution data
 
-### Supported Institution Types
-- `HOSPITAL` - General hospitals
-- `CLINIC` - Medical clinics
-- `PUSKESMAS` - Community health centers
-- `PHARMACY` - Pharmacies
-- `LABORATORY` - Medical laboratories
+## 🚀 Quick Start
 
-## 📋 Prerequisites
+### Persyaratan
+- **Node.js** 18+
+- **MySQL** 8.0+
+- **RabbitMQ** 3.9+
+- **Prisma CLI** untuk database management
 
-- Node.js 18+ 
-- PostgreSQL 13+
-- RabbitMQ 3.8+
-- Docker & Docker Compose (optional)
-
-## 🛠️ Installation
+### Instalasi
 
 ```bash
-# Clone the repository
-git clone [repository-url]
+# Clone repository
+git clone https://github.com/MediQ-Compfest-17-SEA/MediQ-Backend-Institution-Service.git
 cd MediQ-Backend-Institution-Service
 
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env
-
-# Configure your environment variables
-# Edit .env file with your database and RabbitMQ settings
-
-# Generate Prisma client
+# Setup database
+npx prisma migrate dev
 npx prisma generate
 
-# Run database migrations
-npx prisma migrate dev
-```
+# Setup environment variables
+cp .env.example .env
+# Edit .env sesuai konfigurasi environment Anda
 
-## ⚙️ Configuration
+# Start development server
+npm run start:dev
+```
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment mode | `development` |
-| `PORT` | Service port | `8606` |
-| `DATABASE_URL` | PostgreSQL connection string | - |
-| `RABBITMQ_URL` | RabbitMQ connection string | - |
+```env
+# Server Configuration
+PORT=8606
+NODE_ENV=development
 
-See `.env.example` for complete configuration options.
+# Database Configuration
+DATABASE_URL="mysql://username:password@localhost:3306/mediq_institutions"
 
-## 🏃 Running the Service
+# RabbitMQ Configuration
+RABBITMQ_URL=amqp://localhost:5672
 
-```bash
-# Development mode
-npm run start:dev
+# Logging Configuration
+LOG_LEVEL=info
 
-# Production mode
-npm run start:prod
-
-# Watch mode
-npm run start
+# Validation
+INSTITUTION_NAME_MIN_LENGTH=3
+INSTITUTION_NAME_MAX_LENGTH=100
 ```
 
-The service will be available at:
-- **API**: http://localhost:8606
-- **Swagger Docs**: http://localhost:8606/api/docs
-- **Health Check**: http://localhost:8606/health
+## 📋 API Endpoints
 
-## 🐳 Docker Support
+### Base URL
+**Development**: `http://localhost:8606`  
+**Production**: `https://api.mediq.com/institutions`
 
-### Using Docker Compose (Recommended for Development)
+### Swagger Documentation
+**Interactive API Docs**: `http://localhost:8606/api/docs`
 
-```bash
-# Start all services (PostgreSQL, RabbitMQ, Redis, Institution Service)
-docker-compose up -d
+### Core Endpoints
 
-# View logs
-docker-compose logs -f institution-service
+#### 🏢 Institution Management
 
-# Stop services
-docker-compose down
+**Create Fasilitas Kesehatan**
+```http
+POST /institutions
+Content-Type: application/json
+
+{
+  "name": "RS Harapan Bunda",
+  "address": "Jl. Kesehatan No. 123, Jakarta Pusat",
+  "phone": "021-555-1234"
+}
 ```
 
-### Building Docker Image
+**Response:**
+```json
+{
+  "id": "uuid-string",
+  "name": "RS Harapan Bunda", 
+  "address": "Jl. Kesehatan No. 123, Jakarta Pusat",
+  "phone": "021-555-1234",
+  "createdAt": "2024-01-20T10:00:00.000Z",
+  "updatedAt": "2024-01-20T10:00:00.000Z"
+}
+```
 
-```bash
-# Build image
-npm run docker:build
+**Get All Institutions**
+```http
+GET /institutions
+```
 
-# Push to registry
-npm run docker:push
+**Get Institution by ID**
+```http
+GET /institutions/{institutionId}
+```
+
+**Update Institution**
+```http
+PATCH /institutions/{institutionId}
+Content-Type: application/json
+
+{
+  "name": "RS Harapan Sejahtera",
+  "phone": "021-555-9999"
+}
+```
+
+**Delete Institution**
+```http
+DELETE /institutions/{institutionId}
+```
+
+#### 🔍 Search & Discovery
+
+**Search by Name**
+```http
+GET /institutions/search/{searchName}
+
+# Example:
+GET /institutions/search/harapan
+```
+
+**Get Institution Services**
+```http
+GET /institutions/{institutionId}/services
+```
+
+**Response:**
+```json
+[
+  {
+    "id": "service-uuid-1",
+    "name": "Poli Umum",
+    "location": "Lantai 1, Ruang 101",
+    "institutionId": "institution-uuid"
+  },
+  {
+    "id": "service-uuid-2", 
+    "name": "Poli Gigi",
+    "location": "Lantai 2, Ruang 201",
+    "institutionId": "institution-uuid"
+  }
+]
+```
+
+#### 🏥 Health Check
+
+**Service Health**
+```http
+GET /health
+```
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "service": "institution-service",
+  "timestamp": "2024-01-20T10:00:00.000Z",
+  "uptime": 123456,
+  "version": "1.0.0"
+}
 ```
 
 ## 🧪 Testing
 
+### Unit Testing
 ```bash
-# Run all tests
-npm run test
-
-# Run tests with coverage
+# Run all tests with coverage
 npm run test:cov
-
-# Run E2E tests
-npm run test:e2e
-
-# Run integration tests
-npm run test:integration
 
 # Run tests in watch mode
 npm run test:watch
 
-# Run CI tests (coverage + E2E)
-npm run ci:test
+# Test specific service
+npm run test institution.service.spec.ts
+npm run test institution.controller.spec.ts
 ```
 
-### Test Coverage Requirements
+### Integration Testing
+```bash
+# Test database operations
+npm run test:integration
+
+# Test RabbitMQ communication
+npm run test:messaging
+
+# End-to-end testing
+npm run test:e2e
+```
+
+### Coverage Requirements
 - **Statements**: 100%
 - **Branches**: 100%
-- **Functions**: 100%
+- **Functions**: 100% 
 - **Lines**: 100%
 
-## 📊 API Documentation
+### Test Data Examples
+```typescript
+// Sample test data
+const mockInstitution = {
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  name: 'RS Harapan Bunda',
+  address: 'Jl. Kesehatan No. 123, Jakarta',
+  phone: '021-555-1234',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
-### REST Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/institutions` | Get all institutions |
-| `GET` | `/institutions/:id` | Get institution by ID |
-| `POST` | `/institutions` | Create new institution |
-| `PATCH` | `/institutions/:id` | Update institution |
-| `DELETE` | `/institutions/:id` | Delete institution |
-| `GET` | `/institutions/:id/services` | Get institution services |
-| `GET` | `/health` | Health check |
-
-### RabbitMQ Message Patterns
-
-| Pattern | Description | Payload |
-|---------|-------------|---------|
-| `institution.create` | Create institution | `CreateInstitutionDto` |
-| `institution.findAll` | Get all institutions | `{}` |
-| `institution.findOne` | Get institution by ID | `{ id: string }` |
-| `institution.update` | Update institution | `{ id: string, updateData: UpdateInstitutionDto }` |
-| `institution.delete` | Delete institution | `{ id: string }` |
-| `institution.getServices` | Get institution services | `{ id: string }` |
-| `health.check` | Health check | `{}` |
-
-### Sample API Usage
-
-```bash
-# Create institution
-curl -X POST http://localhost:8606/institutions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "General Hospital",
-    "code": "GH001",
-    "type": "HOSPITAL",
-    "address": "123 Main St",
-    "phone": "021-555-1234",
-    "email": "admin@gh.com"
-  }'
-
-# Get all institutions
-curl http://localhost:8606/institutions
-
-# Get institution by ID
-curl http://localhost:8606/institutions/{id}
+const mockServices = [
+  {
+    id: 'service-uuid-1',
+    name: 'Poli Umum',
+    location: 'Lantai 1',
+    institutionId: '123e4567-e89b-12d3-a456-426614174000',
+  }
+];
 ```
 
-## 🚀 Deployment
+## 🏗️ Database Schema
+
+### Institution Model
+```sql
+model Institution {
+  id        String    @id @default(uuid())
+  name      String                      // Nama faskes (RS, Klinik, Puskesmas)
+  address   String?                     // Alamat lengkap faskes
+  phone     String?                     // Nomor telepon faskes
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  services Service[] // Relasi: Satu institusi punya banyak layanan
+}
+```
+
+### Service Model
+```sql
+model Service {
+  id            String      @id @default(uuid())
+  name          String      // Nama layanan (e.g., "Poli Umum", "Apotek")
+  location      String?     // Lokasi layanan (e.g., "Lantai 2, Ruang 201")
+
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  institutionId String
+}
+```
+
+### Database Operations
+```typescript
+// Institution creation dengan validation
+async create(createInstitutionDto: CreateInstitutionDto) {
+  return this.prisma.institution.create({
+    data: createInstitutionDto,
+    include: {
+      services: true, // Include related services
+    },
+  });
+}
+
+// Search institutions dengan case-insensitive
+async findByName(searchName: string) {
+  return this.prisma.institution.findMany({
+    where: {
+      name: {
+        contains: searchName,
+        mode: 'insensitive',
+      },
+    },
+    include: {
+      services: true,
+    },
+  });
+}
+```
+
+## 📦 Production Deployment
+
+### Docker
+```bash
+# Build production image
+docker build -t mediq/institution-service:latest .
+
+# Run container
+docker run -p 8606:8606 \
+  -e DATABASE_URL="mysql://user:pass@mysql:3306/mediq_institutions" \
+  -e RABBITMQ_URL="amqp://rabbitmq:5672" \
+  mediq/institution-service:latest
+```
 
 ### Kubernetes
-
 ```bash
-# Deploy to Kubernetes
+# Deploy to cluster
 kubectl apply -f k8s/
 
-# Check deployment status
-kubectl get pods -l app=mediq,service=institution-service
+# Run database migrations  
+kubectl exec -it institution-service-pod -- npx prisma migrate deploy
+
+# Check service status
+kubectl get pods -l app=institution-service
 
 # View logs
 kubectl logs -f deployment/institution-service
 ```
 
-### Environment-Specific Deployments
-
+### Database Migration
 ```bash
-# Deploy to staging
-git push origin develop
+# Create new migration
+npx prisma migrate dev --name add-institution-type
 
 # Deploy to production
-git push origin main
+npx prisma migrate deploy
+
+# View migration status
+npx prisma migrate status
 ```
-
-## 🔍 Monitoring & Observability
-
-### Health Checks
-- **Liveness Probe**: `/health`
-- **Readiness Probe**: `/health`
-
-### Logging
-- **Format**: JSON (production) / Pretty (development)
-- **Levels**: error, warn, info, debug
-- **Context**: HTTP requests, database operations, RabbitMQ messages
-
-### Metrics
-- Auto-scaling based on CPU (70%) and Memory (80%) usage
-- Horizontal Pod Autoscaler: 2-10 replicas
-
-## 🛡️ Security
-
-- **Input Validation**: Class-validator decorators
-- **SQL Injection Prevention**: Prisma ORM parameterized queries
-- **CORS Configuration**: Configurable origins
-- **Rate Limiting**: Configurable request limits
-- **Container Security**: Non-root user, read-only filesystem
-
-## 🤝 Integration with Other Services
-
-### Patient Queue Service
-- Uses `institution.findOne` to get institution details
-- Validates institution existence during patient registration
-
-### User Service
-- Associates users with institutions
-- Validates institution access permissions
-
-### OCR Service
-- Auto-populates institution data from KTP processing
-- Creates institutions automatically when detected
 
 ## 🔧 Development
 
 ### Project Structure
 ```
 src/
-├── institution/          # Institution module
-│   ├── dto/             # Data Transfer Objects
-│   ├── institution.controller.ts
-│   ├── institution.service.ts
-│   └── institution.module.ts
-├── prisma/              # Database module
-├── app.module.ts        # Root module
-└── main.ts              # Application entry point
-
-k8s/                     # Kubernetes manifests
-test/                    # Test files
+├── institution/
+│   ├── dto/                        # Data Transfer Objects
+│   ├── institution.controller.ts   # HTTP endpoints & message patterns
+│   ├── institution.service.ts      # Business logic
+│   └── institution.module.ts       # Module configuration
+├── prisma/
+│   ├── prisma.service.ts           # Database service
+│   └── prisma.module.ts            # Database module
+├── app.module.ts                   # Main application module
+└── main.ts                         # Application bootstrap
 ```
 
-### Code Style
-- **Prettier**: Single quotes, trailing commas
-- **ESLint**: TypeScript recommended rules
-- **Import Style**: Absolute imports using `src/`
-- **Naming**: camelCase for variables, PascalCase for classes
+### Message Pattern Handlers
+```typescript
+// RabbitMQ message handlers untuk inter-service communication
+@MessagePattern('institution.create')
+async createInstitutionFromMessage(@Payload() data: CreateInstitutionDto) {
+  return this.institutionService.create(data);
+}
 
-### Database Schema
-```sql
--- Institution table
-CREATE TABLE Institution (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name        VARCHAR(200) NOT NULL,
-  code        VARCHAR(20) UNIQUE NOT NULL,
-  address     VARCHAR(500),
-  phone       VARCHAR(20),
-  email       VARCHAR(255),
-  type        InstitutionType NOT NULL,
-  status      InstitutionStatus DEFAULT 'ACTIVE',
-  createdAt   TIMESTAMP DEFAULT NOW(),
-  updatedAt   TIMESTAMP DEFAULT NOW()
+@MessagePattern('institution.findAll')
+async findAllInstitutions() {
+  return this.institutionService.findAll();
+}
+
+@MessagePattern('institution.findOne')
+async findOneInstitution(@Payload() data: { id: string }) {
+  return this.institutionService.findOne(data.id);
+}
+
+@MessagePattern('institution.getServices')
+async getInstitutionServices(@Payload() data: { institutionId: string }) {
+  return this.institutionService.getInstitutionServices(data.institutionId);
+}
+```
+
+### Integration Points
+```typescript
+// Integration dengan Patient Queue Service
+// Queue Service dapat query institution info
+const institutionInfo = await this.messagingService.send(
+  'institution.findOne', 
+  { id: queueData.institutionId }
 );
 
--- Service table
-CREATE TABLE Service (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          VARCHAR(200) NOT NULL,
-  description   TEXT,
-  institutionId UUID REFERENCES Institution(id) ON DELETE CASCADE,
-  createdAt     TIMESTAMP DEFAULT NOW(),
-  updatedAt     TIMESTAMP DEFAULT NOW()
+// Integration dengan User Service 
+// Associate users dengan institutions
+const userInstitution = await this.messagingService.send(
+  'institution.findOne',
+  { id: user.institutionId }
 );
 ```
 
-## 🐛 Troubleshooting
+## 🚨 Monitoring & Troubleshooting
+
+### Health Monitoring
+```bash
+# Service health check
+curl http://localhost:8606/health
+
+# Database connectivity
+curl http://localhost:8606/institutions
+
+# RabbitMQ connectivity  
+curl http://localhost:8606/status
+```
 
 ### Common Issues
 
-1. **Database Connection Failed**
-   ```bash
-   # Check PostgreSQL is running
-   docker-compose ps postgres
-   
-   # Check connection string
-   echo $DATABASE_URL
-   ```
+**Database Connection Error**:
+```bash
+# Test MySQL connection
+mysql -h localhost -u username -p
 
-2. **RabbitMQ Connection Issues**
-   ```bash
-   # Check RabbitMQ is running
-   docker-compose ps rabbitmq
-   
-   # Access management UI
-   http://localhost:15672 (guest/guest)
-   ```
+# Verify DATABASE_URL format
+DATABASE_URL="mysql://username:password@host:port/database"
 
-3. **Port Already in Use**
-   ```bash
-   # Find process using port 8606
-   lsof -ti:8606
-   
-   # Kill the process
-   kill -9 <PID>
-   ```
+# Check database exists
+mysql -e "SHOW DATABASES LIKE 'mediq_institutions';"
+```
 
-## 📝 Contributing
+**Prisma Migration Issues**:
+```bash
+# Reset database (development only)
+npx prisma migrate reset
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes and add tests
-4. Ensure 100% test coverage (`npm run test:cov`)
-5. Run linting (`npm run lint`)
-6. Commit changes (`git commit -m 'Add amazing feature'`)
-7. Push to branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+# Apply pending migrations
+npx prisma migrate deploy
+
+# Generate client after schema changes
+npx prisma generate
+```
+
+**RabbitMQ Communication Issues**:
+```bash
+# Check RabbitMQ status
+rabbitmqctl status
+
+# List queues
+rabbitmqctl list_queues name messages
+
+# Test message sending
+curl -X POST http://localhost:8606/institutions \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Hospital"}'
+```
+
+### Performance Monitoring
+```typescript
+// Database query performance
+const startTime = Date.now();
+const institutions = await this.prisma.institution.findMany();
+const queryTime = Date.now() - startTime;
+
+logger.info('Database query performance', {
+  operation: 'findAll',
+  queryTime: `${queryTime}ms`,
+  resultCount: institutions.length
+});
+```
+
+## 🔒 Security Considerations
+
+### Data Validation
+```typescript
+// Comprehensive input validation
+@IsString()
+@IsNotEmpty()
+@MinLength(3)
+@MaxLength(100)
+name: string;
+
+@IsOptional()
+@IsString()
+@MaxLength(255)
+address?: string;
+
+@IsOptional()
+@IsString()
+@Matches(/^[0-9\-\+\(\)\s]+$/, {
+  message: 'Phone number contains invalid characters'
+})
+phone?: string;
+```
+
+### Database Security
+- **Prepared Statements**: Prisma ORM prevents SQL injection
+- **Input Sanitization**: Validate semua user inputs
+- **Access Control**: Database user dengan minimal privileges
+- **Audit Logging**: Track semua institution operations
+
+### API Security
+- **Authentication**: Integration dengan User Service untuk JWT validation
+- **Authorization**: Role-based access (hanya ADMIN_FASKES yang bisa CRUD)
+- **Rate Limiting**: Prevent abuse dengan appropriate limits
+- **Error Handling**: Tidak expose sensitive system information
+
+## 🎯 Use Cases
+
+### Scenario 1: Setup Faskes Baru
+1. **Admin register** faskes baru via API
+2. **Institution Service** validate dan store data
+3. **Service setup** untuk layanan yang ditawarkan
+4. **Integration** dengan Queue Service untuk antrian per layanan
+
+### Scenario 2: Patient Registration Integration  
+1. **OCR Service** process KTP pasien
+2. **Auto-detect** atau **user select** faskes
+3. **Institution Service** provide faskes info
+4. **Queue Service** add pasien ke antrian faskes yang dipilih
+
+### Scenario 3: Admin Dashboard
+1. **Admin dashboard** query semua faskes
+2. **Institution Service** return data dengan statistics
+3. **Service management** untuk enable/disable layanan
+4. **Reporting** untuk management oversight
+
+## 🔧 Development Guidelines
+
+### Code Style
+- **ESLint**: TypeScript recommended dengan Prettier
+- **Formatting**: Single quotes, trailing commas
+- **Imports**: Absolute imports dengan `src/` path mapping
+- **Validation**: class-validator untuk DTOs
+- **Error Handling**: Consistent exception handling
+
+### Development Commands
+```bash
+# Development dengan hot reload
+npm run start:dev
+
+# Build production
+npm run build
+
+# Database operations
+npx prisma studio          # Database GUI
+npx prisma migrate dev      # Create migration
+npx prisma generate        # Generate client
+
+# Linting dan formatting
+npm run lint
+npm run format
+
+# Testing
+npm run test              # Unit tests
+npm run test:cov         # With coverage  
+npm run test:integration # Integration tests
+```
+
+### Adding New Features
+```typescript
+// 1. Update Prisma schema
+model Institution {
+  // Add new fields
+  type        String?    // HOSPITAL, CLINIC, PUSKESMAS
+  capacity    Int?       // Kapasitas faskes
+  rating      Float?     // Rating faskes
+}
+
+// 2. Generate migration
+// npx prisma migrate dev --name add-institution-type
+
+// 3. Update DTOs
+export class CreateInstitutionDto {
+  @IsOptional()
+  @IsEnum(['HOSPITAL', 'CLINIC', 'PUSKESMAS'])
+  type?: string;
+  
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  capacity?: number;
+}
+
+// 4. Update service logic
+async findByType(type: string) {
+  return this.prisma.institution.findMany({
+    where: { type },
+    include: { services: true }
+  });
+}
+
+// 5. Add tests
+it('should filter institutions by type', async () => {
+  // Test implementation
+});
+```
+
+## 📊 Analytics & Reporting
+
+### Institution Statistics
+```typescript
+// Get institution statistics
+async getInstitutionStats() {
+  const stats = await this.prisma.institution.aggregate({
+    _count: true,
+    _avg: { rating: true },
+  });
+  
+  const serviceStats = await this.prisma.service.groupBy({
+    by: ['institutionId'],
+    _count: { _all: true },
+  });
+
+  return {
+    totalInstitutions: stats._count,
+    averageRating: stats._avg.rating,
+    averageServicesPerInstitution: serviceStats.length > 0 
+      ? serviceStats.reduce((sum, item) => sum + item._count._all, 0) / serviceStats.length 
+      : 0,
+  };
+}
+```
+
+### Usage Tracking
+```typescript
+// Track institution usage
+async trackInstitutionUsage(institutionId: string, action: string) {
+  logger.info('Institution usage tracked', {
+    institutionId,
+    action,
+    timestamp: new Date().toISOString(),
+  });
+  
+  // Could store usage statistics untuk reporting
+}
+```
+
+## 🤝 Contributing
+
+1. **Fork** repository
+2. **Create feature branch** (`git checkout -b feature/institution-rating`)
+3. **Write comprehensive tests** dengan 100% coverage
+4. **Update database schema** jika diperlukan
+5. **Add migration files** untuk schema changes
+6. **Update documentation** untuk new endpoints
+7. **Commit changes** (`git commit -m 'Add institution rating system'`)
+8. **Push branch** (`git push origin feature/institution-rating`)
+9. **Create Pull Request**
+
+### Code Review Checklist
+- ✅ Unit tests dengan 100% coverage
+- ✅ Integration tests untuk database operations
+- ✅ Swagger documentation updated
+- ✅ Database migration files included
+- ✅ Error handling implemented
+- ✅ Message patterns documented
+- ✅ Performance considerations addressed
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in this repository
-- Contact the MediQ development team
-- Check the [troubleshooting section](#troubleshooting)
+Copyright (c) 2024 MediQ Team. All rights reserved.
 
 ---
 
-**MediQ Institution Service** - Part of the MediQ Healthcare Management System
+**💡 Tips Development**:
+- Gunakan `npx prisma studio` untuk visual database management
+- Test message patterns dengan RabbitMQ management console
+- Monitor database performance dengan `EXPLAIN` queries
+- Use database indexes untuk frequently queried fields
+- Implement soft delete untuk audit trail requirements
+
+**🔗 Service Integrations**:
+- **Queue Service**: Institution info untuk queue management
+- **User Service**: User-institution association  
+- **OCR Service**: Auto-populate institution data dari KTP
+- **API Gateway**: Centralized routing dan authentication
+- **Monitoring Stack**: Prometheus metrics dan Grafana dashboards

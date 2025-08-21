@@ -198,6 +198,28 @@ export class InstitutionController {
     return this.institutionService.getServices(data.id);
   }
 
+  @Get('search/:searchName')
+  @ApiOperation({ summary: 'Cari institusi berdasarkan nama' })
+  @ApiParam({ name: 'searchName', description: 'Nama institusi yang dicari' })
+  @ApiResponse({ status: 200, description: 'Daftar institusi yang sesuai dengan pencarian' })
+  async findByName(@Param('searchName') searchName: string) {
+    return this.institutionService.findByName(searchName);
+  }
+
+  @Get(':id/services')
+  @ApiOperation({ summary: 'Dapatkan layanan dari institusi' })
+  @ApiParam({ name: 'id', description: 'ID institusi' })
+  @ApiResponse({ status: 200, description: 'Daftar layanan institusi' })
+  @ApiResponse({ status: 404, description: 'Institusi tidak ditemukan' })
+  async getInstitutionServices(@Param('id') id: string) {
+    return this.institutionService.getInstitutionServices(id);
+  }
+
+  @MessagePattern('institution.findByName')
+  async handleFindByName(@Payload() data: { searchName: string }) {
+    return this.institutionService.findByName(data.searchName);
+  }
+
   @MessagePattern('health.check')
   async handleHealthCheck() {
     return { status: 'ok', service: 'institution-service', timestamp: new Date().toISOString() };

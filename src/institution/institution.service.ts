@@ -26,7 +26,7 @@ export class InstitutionService {
     });
 
     if (!institution) {
-      throw new NotFoundException(`Institution with ID ${id} not found.`);
+      throw new NotFoundException(`Institusi dengan ID ${id} tidak ditemukan.`);
     }
 
     return institution;
@@ -48,10 +48,30 @@ export class InstitutionService {
       await this.prisma.institution.delete({
         where: { id },
       });
-      return { message: `Institution with ID ${id} has been successfully deleted.` };
+      return { message: `Institusi dengan ID ${id} berhasil dihapus.` };
     } catch (error) {
-      throw new NotFoundException(`Institution with ID ${id} not found.`);
+      throw new NotFoundException(`Institusi dengan ID ${id} tidak ditemukan.`);
     }
+  }
+
+  async findByName(searchName: string) {
+    return this.prisma.institution.findMany({
+      where: {
+        name: {
+          contains: searchName,
+          mode: 'insensitive',
+        },
+      },
+      include: {
+        services: true,
+      },
+    });
+  }
+
+  async getInstitutionServices(institutionId: string) {
+    return this.prisma.service.findMany({
+      where: { institutionId },
+    });
   }
 
   async getServices(institutionId: string) {
@@ -63,7 +83,7 @@ export class InstitutionService {
     });
 
     if (!institution) {
-      throw new NotFoundException(`Institution with ID ${institutionId} not found.`);
+      throw new NotFoundException(`Institusi dengan ID ${institutionId} tidak ditemukan.`);
     }
 
     return institution.services;

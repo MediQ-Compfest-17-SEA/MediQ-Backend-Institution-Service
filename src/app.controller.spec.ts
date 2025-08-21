@@ -15,8 +15,24 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return service information', () => {
+      const result = appController.getHello();
+      expect(result).toEqual({
+        service: 'MediQ Institution Service',
+        version: '1.0.0',
+        status: 'running'
+      });
+    });
+  });
+
+  describe('health', () => {
+    it('should return health status', () => {
+      const result = appController.getHealth();
+      expect(result).toHaveProperty('status', 'ok');
+      expect(result).toHaveProperty('service', 'institution-service');
+      expect(result).toHaveProperty('timestamp');
+      expect(result).toHaveProperty('uptime');
+      expect(result).toHaveProperty('version', '1.0.0');
     });
   });
 });
