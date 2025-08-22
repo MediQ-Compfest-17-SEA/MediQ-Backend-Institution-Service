@@ -26,6 +26,8 @@
     "docker:push": "docker push mediq-institution-service"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.13.4",
+    "@grpc/proto-loader": "^0.8.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -33,8 +35,6 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "^6.14.0",
-    "amqp-connection-manager": "^4.1.14",
-    "amqplib": "^0.10.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "joi": "^18.0.0",
@@ -102,6 +102,8 @@
         "lines": 100
       }
     },
-    "setupFilesAfterEnv": ["<rootDir>/../test/setup.ts"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/../test/setup.ts"
+    ]
   }
 }
