@@ -1,7 +1,8 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InstitutionController } from './institution.controller';
 import { InstitutionService } from './institution.service';
-import { CreateInstitutionDto } from './dto/create-institution.dto';
+import { CreateInstitutionDto, InstitutionType } from './dto/create-institution.dto';
 import { UpdateInstitutionDto } from './dto/update-institutioin.dto';
 
 describe('InstitutionController', () => {
@@ -16,6 +17,7 @@ describe('InstitutionController', () => {
     remove: jest.fn(),
     findByName: jest.fn(),
     getInstitutionServices: jest.fn(),
+    getServices: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -45,8 +47,10 @@ describe('InstitutionController', () => {
     it('should create institution successfully', async () => {
       const createDto: CreateInstitutionDto = {
         name: 'RS Harapan Bunda',
+        code: 'RSU001',
         address: 'Jl. Sehat No. 123, Jakarta',
         phone: '021-555-1234',
+        type: InstitutionType.HOSPITAL,
       };
 
       const mockResult = {
@@ -80,7 +84,7 @@ describe('InstitutionController', () => {
           updatedAt: new Date(),
         },
         {
-          id: 'uuid-2', 
+          id: 'uuid-2',
           name: 'Klinik Sehat',
           address: 'Jl. Kesehatan No. 456',
           phone: '021-555-5678',
@@ -130,7 +134,7 @@ describe('InstitutionController', () => {
     it('should handle institution not found', async () => {
       const institutionId = 'non-existent-id';
       mockInstitutionService.findOne.mockRejectedValue(
-        new NotFoundException(`Institusi dengan ID ${institutionId} tidak ditemukan.`)
+        new NotFoundException(`Institusi dengan ID ${institutionId} tidak ditemukan.`),
       );
 
       await expect(controller.findOne(institutionId)).rejects.toThrow(NotFoundException);
@@ -236,6 +240,110 @@ describe('InstitutionController', () => {
 
       expect(result).toEqual([]);
       expect(mockInstitutionService.getInstitutionServices).toHaveBeenCalledWith(institutionId);
+    });
+  });
+
+  // Additional nested coverage inside the same suite to avoid scope issues
+  describe('REST getServices (nested)', () => {
+    it('should get services via REST getServices', async () => {
+      const institutionId = 'uuid-string';
+      const mockServices = [
+        { id: 's1', name: 'Poli A', location: 'L1', institutionId },
+        { id: 's2', name: 'Poli B', location: 'L2', institutionId },
+      ];
+
+      (mockInstitutionService.getServices as jest.Mock).mockResolvedValue(mockServices);
+
+      const result = await controller.getServices(institutionId);
+
+      expect(result).toEqual(mockServices);
+      expect(mockInstitutionService.getServices).toHaveBeenCalledWith(institutionId);
+    });
+  });
+
+  describe('Message Patterns (nested)', () => {
+    it('handleCreate should delegate to service.create', async () => {
+      const dto: CreateInstitutionDto = {
+        name: 'RS Sejahtera',
+        code: 'RSX001',
+        address: 'Jl. A No.1',
+        phone: '021-000-000',
+        type: InstitutionType.HOSPITAL,
+      };
+      const created = { id: 'id-1', ...dto, createdAt: new Date(), updatedAt: new Date() };
+
+      (mockInstitutionService.create as jest.Mock).mockResolvedValue(created);
+
+      const result = await controller.handleCreate(dto);
+      expect(result).toEqual(created);
+      expect(mockInstitutionService.create).toHaveBeenCalledWith(dto);
+    });
+
+    it('handleFindAll should delegate to service.findAll', async () => {
+      const list = [{ id: 'i1' }, { id: 'i2' }];
+      (mockInstitutionService.findAll as jest.Mock).mockResolvedValue(list);
+
+      const result = await controller.handleFindAll();
+      expect(result).toEqual(list);
+      expect(mockInstitutionService.findAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('handleFindOne should delegate to service.findOne', async () => {
+      const id = 'uuid-abc';
+      const data = { id, name: 'X' };
+      (mockInstitutionService.findOne as jest.Mock).mockResolvedValue(data);
+
+      const result = await controller.handleFindOne({ id });
+      expect(result).toEqual(data);
+      expect(mockInstitutionService.findOne).toHaveBeenCalledWith(id);
+    });
+
+    it('handleUpdate should delegate to service.update', async () => {
+      const id = 'uuid-abc';
+      const update: UpdateInstitutionDto = { name: 'Updated' };
+      const updated = { id, name: 'Updated' };
+      (mockInstitutionService.update as jest.Mock).mockResolvedValue(updated);
+
+      const result = await controller.handleUpdate({ id, updateData: update });
+      expect(result).toEqual(updated);
+      expect(mockInstitutionService.update).toHaveBeenCalledWith(id, update);
+    });
+
+    it('handleDelete should delegate to service.remove', async () => {
+      const id = 'uuid-abc';
+      const resp = { message: 'ok' };
+      (mockInstitutionService.remove as jest.Mock).mockResolvedValue(resp);
+
+      const result = await controller.handleDelete({ id });
+      expect(result).toEqual(resp);
+      expect(mockInstitutionService.remove).toHaveBeenCalledWith(id);
+    });
+
+    it('handleGetServices should delegate to service.getServices', async () => {
+      const id = 'uuid-abc';
+      const services = [{ id: 's1' }];
+      (mockInstitutionService.getServices as jest.Mock).mockResolvedValue(services);
+
+      const result = await controller.handleGetServices({ id });
+      expect(result).toEqual(services);
+      expect(mockInstitutionService.getServices).toHaveBeenCalledWith(id);
+    });
+
+    it('handleFindByName should delegate to service.findByName', async () => {
+      const searchName = 'Harapan';
+      const list = [{ id: 'i1', name: 'RS Harapan' }];
+      (mockInstitutionService.findByName as jest.Mock).mockResolvedValue(list);
+
+      const result = await controller.handleFindByName({ searchName });
+      expect(result).toEqual(list);
+      expect(mockInstitutionService.findByName).toHaveBeenCalledWith(searchName);
+    });
+
+    it('handleHealthCheck should return health payload', async () => {
+      const result = await controller.handleHealthCheck();
+      expect(result.status).toBe('ok');
+      expect(result.service).toBe('institution-service');
+      expect(typeof result.timestamp).toBe('string');
     });
   });
 });

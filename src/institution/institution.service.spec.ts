@@ -123,6 +123,7 @@ describe('InstitutionService', () => {
       expect(result).toEqual(mockInstitution);
       expect(mockPrismaService.institution.findUnique).toHaveBeenCalledWith({
         where: { id: institutionId },
+        include: { services: true },
       });
     });
 
@@ -233,9 +234,10 @@ describe('InstitutionService', () => {
         where: {
           name: {
             contains: searchName,
-            mode: 'insensitive',
+            
           },
         },
+        include: { services: true },
       });
     });
 
@@ -250,9 +252,10 @@ describe('InstitutionService', () => {
         where: {
           name: {
             contains: searchName,
-            mode: 'insensitive',
+            
           },
         },
+        include: { services: true },
       });
     });
   });
